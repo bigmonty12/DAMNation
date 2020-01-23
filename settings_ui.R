@@ -4,7 +4,7 @@
 fluidPage(
   fluidRow(
     column(12,
-           tags$h1("DAM Analysis", align = "center"),
+           tags$h1("DAM Nation", align = "center"),
            tags$h3("Program analyzing locomotor activity in Trikinetics DAM system",
                    align = "center"),
            tags$h4("Austin Montgomery, Rothenfluh Lab, University of Utah",
