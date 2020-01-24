@@ -128,7 +128,6 @@ find.bouts <- function(df) {
 
 find.boutAverages <- function(bouts, deadf) {
   bouts <- bouts[c(F,F,T,T)]
-  head(bouts)
   
   splitdf <- function(df, n) {
     indx <- matrix(seq_len(ncol(df)), ncol = n)
@@ -138,12 +137,13 @@ find.boutAverages <- function(bouts, deadf) {
   dfs <- splitdf(bouts, 32)
   colnames <- c("Length", "Period")
   dfs <- lapply(dfs, setNames, colnames)
-  
-  for (i in seq(from = 1, to = length(deadf), by = 1)) {
-    fly <- deadf[i]
-    idx <- min(which(is.na(dfs[[fly]]))) - 1
-    dfs[[fly]][[1]][idx] <- NA
-    dfs[[fly]][[2]][idx] <- NA
+  if (deadf != 0) {
+    for (i in seq(from = 1, to = length(deadf), by = 1)) {
+      fly <- deadf[i]
+      idx <- min(which(is.na(dfs[[fly]]))) - 1
+      dfs[[fly]][[1]][idx] <- NA
+      dfs[[fly]][[2]][idx] <- NA
+    }
   }
   
   df <- rbindlist(dfs) 
