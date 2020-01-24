@@ -125,3 +125,47 @@ find.bouts <- function(df) {
   }
   return(bouts_list)
 }
+
+find.boutAverages <- function(bouts, deadf) {
+  bouts <- bouts[c(F,F,T,T)]
+  head(bouts)
+  
+  splitdf <- function(df, n) {
+    indx <- matrix(seq_len(ncol(df)), ncol = n)
+    lapply(seq_len(n), function(x) df[, indx[, x]])
+  }
+  
+  dfs <- splitdf(bouts, 32)
+  colnames <- c("Length", "Period")
+  dfs <- lapply(dfs, setNames, colnames)
+  
+  for (i in seq(from = 1, to = length(deadf), by = 1)) {
+    fly <- deadf[i]
+    idx <- min(which(is.na(dfs[[fly]]))) - 1
+    dfs[[fly]][[1]][idx] <- NA
+    dfs[[fly]][[2]][idx] <- NA
+  }
+  
+  df <- rbindlist(dfs) 
+  df <- na.omit(df)
+  
+  light <- df %>% filter(Period == "Light")
+  dark <- df %>% filter(Period == "Dark")
+  
+  meanNumBoutsLight <- length(light[[1]]) / 32
+  meanNumBoutsDark <- length(dark[[1]]) / 32
+  
+  meanBoutLengthLight <- mean(light[[1]])
+  sdBoutLengthLight <- sd(light[[1]])
+  meanBoutLengthDark <- mean(dark[[1]])
+  sdBoutLengthDark <- sd(dark[[1]])
+  
+  boutAverages <- data.frame("Mean Bout Number (Light)" = meanNumBoutsLight,
+                             "Mean Bout Length (Light)" = meanBoutLengthLight,
+                             "SD Bout Length (Light)" = sdBoutLengthLight,
+                             "Mean Bout Number (Dark)" = meanNumBoutsDark,
+                             "Mean Bout Length (Dark)" = meanBoutLengthDark,
+                             "SD Bout Length (Dark)" = sdBoutLengthDark)
+  return(boutAverages)
+  
+}

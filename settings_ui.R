@@ -98,8 +98,10 @@ fluidPage(
                tableOutput('bouts'))
       ),
       fluidRow(
-        column(3,
-               downloadButton("downloadBouts", "Download DAM-Bouts"))
+        column(2,
+               downloadButton("downloadBouts", "Download DAM-Bouts")),
+        column(2,
+               downloadButton("downloadBoutAverages", "Download DAM-Bout-Averages"))
       )
     ),
     wellPanel(
