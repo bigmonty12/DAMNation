@@ -127,6 +127,9 @@ find.bouts <- function(df) {
 }
 
 find.boutAverages <- function(bouts, deadf) {
+  bouts <- read.csv("2019-11-23_DAM-bouts_1days.1.csv")
+  bouts <- bouts[-1]
+  
   bouts <- bouts[c(F,F,T,T)]
   
   splitdf <- function(df, n) {
@@ -137,6 +140,7 @@ find.boutAverages <- function(bouts, deadf) {
   dfs <- splitdf(bouts, 32)
   colnames <- c("Length", "Period")
   dfs <- lapply(dfs, setNames, colnames)
+  
   if (deadf != 0) {
     for (i in seq(from = 1, to = length(deadf), by = 1)) {
       fly <- deadf[i]
@@ -146,26 +150,38 @@ find.boutAverages <- function(bouts, deadf) {
     }
   }
   
-  df <- rbindlist(dfs) 
-  df <- na.omit(df)
+  dfs <- lapply(dfs, na.omit)
+  dfs_list <- list()
   
-  light <- df %>% filter(Period == "Light")
-  dark <- df %>% filter(Period == "Dark")
+  for (i in seq(from = 1, to = length(dfs), by = 1)) {
+    
+    nam <- paste(i)
+    
+    light <- filter(dfs[[i]], Period=="Light")
+    dark <- filter(dfs[[i]], Period=="Dark")
+    
+    num_light <- length(light[[1]])
+    num_dark <- length(dark[[1]])
+    mean_light <- mean(light[[1]])
+    mean_dark <- mean(dark[[1]])
+    sd_light <- sd(light[[1]])
+    sd_dark <- sd(dark[[1]])
+    idx <- as.character(i)
+    
+    x <- data.frame("Fly" = idx,
+                    "Mean Bout Number (Light)" = num_light,
+                    "Mean Bout Length (Light)" = mean_light,
+                    "SD Bout Length (Light)" = sd_light,
+                    "Mean Bout Number (Dark)" = num_dark,
+                    "Mean Bout Length (Dark)" = mean_dark,
+                    "SD Bout Length (Dark)" = sd_dark)
+    
+    assign(nam, x)
+  }
   
-  meanNumBoutsLight <- length(light[[1]]) / 32
-  meanNumBoutsDark <- length(dark[[1]]) / 32
+  df_list <- mget(as.character(sort(as.numeric(ls(pattern = "[0-9]")))))
+  df <- rbindlist(df_list) 
   
-  meanBoutLengthLight <- mean(light[[1]])
-  sdBoutLengthLight <- sd(light[[1]])
-  meanBoutLengthDark <- mean(dark[[1]])
-  sdBoutLengthDark <- sd(dark[[1]])
-  
-  boutAverages <- data.frame("Mean Bout Number (Light)" = meanNumBoutsLight,
-                             "Mean Bout Length (Light)" = meanBoutLengthLight,
-                             "SD Bout Length (Light)" = sdBoutLengthLight,
-                             "Mean Bout Number (Dark)" = meanNumBoutsDark,
-                             "Mean Bout Length (Dark)" = meanBoutLengthDark,
-                             "SD Bout Length (Dark)" = sdBoutLengthDark)
-  return(boutAverages)
+  return(df)
   
 }
