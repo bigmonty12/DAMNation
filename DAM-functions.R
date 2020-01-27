@@ -127,8 +127,6 @@ find.bouts <- function(df) {
 }
 
 find.boutAverages <- function(bouts, deadf) {
-  bouts <- read.csv("2019-11-23_DAM-bouts_1days.1.csv")
-  bouts <- bouts[-1]
   
   bouts <- bouts[c(F,F,T,T)]
   
