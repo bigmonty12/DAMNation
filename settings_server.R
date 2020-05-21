@@ -443,6 +443,12 @@ find_arousal <- reactive({
 })
 
 
+findBoutAverages <- reactive({
+  bouts <- get_bouts()
+  dead_flies <- dead_flies()
+  
+  boutAverages <- find.boutAverages(bouts, dead_flies)
+})
 
 #====Outputs====
 
@@ -523,10 +529,15 @@ output$downloadSummary <- downloadHandler(
   }
 )
 
+# output$bouts <- renderTable({
+#   go_on_files()
+#   bouts <- get_bouts()
+#   head(bouts)
+# })
+
 output$bouts <- renderTable({
   go_on_files()
-  bouts <- get_bouts()
-  head(bouts)
+  boutAverages <- findBoutAverages()
 })
 
 output$downloadBouts <- downloadHandler(
@@ -535,8 +546,20 @@ output$downloadBouts <- downloadHandler(
   },
   content = function(file) {
     bouts <- get_bouts()
-    print(head(bouts))
     write.csv(bouts, file)
+  }
+)
+
+output$downloadBoutAverages <- downloadHandler(
+  filename = function() {
+    paste(input$dateStart, "_DAM-bout-averages_", input$experimentLength, "days.", input$monitorNumber,
+          ".csv", sep="")
+  },
+  content = function(file) {
+    bouts <- get_bouts()
+    dead_flies <- dead_flies()
+    boutAverages <- find.boutAverages(bouts, dead_flies)
+    write.csv(boutAverages, file)
   }
 )
 
