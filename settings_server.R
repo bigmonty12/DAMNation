@@ -198,7 +198,6 @@ dead_flies <- reactive({
   } else {
     dead_flies <- 0
   }
-  print(dead_flies)
   dead_flies
 })
 
@@ -407,6 +406,21 @@ get_bouts <- reactive({
   all_bouts <- bouts %>% reduce(full_join) %>% dplyr::select(-c("idx"))
 })
 
+
+#====Find Death Times====
+get_death_times <- reactive({
+  bouts <- get_bouts()
+  starts <- bouts[,seq(1, ncol(bouts), 4)]
+  death_times <- as.character(sapply(starts, function(x) x[max(which(!is.na(x)))]))
+  death_times <- as.data.frame(t(death_times))
+  dead_flies <- dead_flies()
+  if(dead_flies > 0){
+    death_times[-c(dead_flies)] <- NA
+  }else{
+    death_times[c(seq(1,length(death_times)))] <- NA
+  }
+  death_times
+})
 #====Find arousal threshold====
 
 find_arousal <- reactive({
@@ -456,6 +470,7 @@ summarizer <- reactive({
   num_days <- length(date_range()) - 1
   shake_time <- NULL
   # Load required dataframes
+  death_times <- get_death_times()
   activity_rate <- activity_rate()
   total_agg_sleep <- total_agg_sleep()
   total_ave_sleep <- total_ave_sleep()
@@ -463,10 +478,17 @@ summarizer <- reactive({
   nightly_latency <- latency()
   total_activity <- total_activity()
   
+
+  colnames(death_times) <- as.character(seq(1, 32))
+  death_times$Type <- "Death Time"
+  death_times$Period <- NA
+  death_times <- death_times[c(c("Type", "Period"), setdiff(names(death_times), c("Type", "Period")))]
+  death_times$Averages <- NA
+
   cnames <- c("Period", as.character(seq(1, length(activity_rate) - 2)), "Averages")
   total_agg_sleep$Type <- "Total sleep (min)"
   total_agg_sleep <- total_agg_sleep[c("Type", setdiff(names(total_agg_sleep), "Type"))]
-  
+
   total_ave_sleep$Type <- "Mean sleep (min/period)"
   total_ave_sleep <- total_ave_sleep[c("Type", setdiff(names(total_ave_sleep), "Type"))]
   
@@ -501,7 +523,8 @@ summarizer <- reactive({
       total_activity,
       activity_rate,
       nightly_latency,
-      arousal_results)
+      arousal_results,
+      death_times)
   } else {
     summary_stats <- rbind(
       total_agg_sleep,
@@ -509,7 +532,8 @@ summarizer <- reactive({
       total_ave_sleep,
       total_activity,
       activity_rate,
-      nightly_latency)
+      nightly_latency,
+      death_times)
   }
 })
 
@@ -529,16 +553,16 @@ output$downloadSummary <- downloadHandler(
   }
 )
 
-# output$bouts <- renderTable({
-#   go_on_files()
-#   bouts <- get_bouts()
-#   head(bouts)
-# })
-
 output$bouts <- renderTable({
-  go_on_files()
-  boutAverages <- findBoutAverages()
-})
+   go_on_files()
+   bouts <- get_bouts()
+   head(bouts)
+ })
+
+#output$bouts <- renderTable({
+#  go_on_files()
+#  boutAverages <- findBoutAverages()
+#})
 
 output$downloadBouts <- downloadHandler(
   filename = function() {
