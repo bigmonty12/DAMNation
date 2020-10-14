@@ -87,7 +87,7 @@ format_raw <- reactive({
       mutate(V3 = ifelse(time > zt & time <= (zt + 12),
                          "Day",
                          "Night")) %>%
-      mutate(V2 = as.character(as.POSIXct(strptime(V2, "%Y-%m-%d %H:%M:%S")) - dhours(zt) - dminutes(2)))
+      mutate(V2 = as.character(as.POSIXct(strptime(V2, "%Y-%m-%d %H:%M:%S")) - dhours(zt) - dminutes(as.numeric(input$data_recording_frequency))))
     
     # Add column names to raw data
     raw_names <- c("Date", "Period", as.character(seq(1, length(raw) - 2)))
@@ -140,7 +140,7 @@ format_agg_sleep <- reactive({
     unique(agg[1:2]), 
     aggregate(agg[3:34], 
               by = agg[1], 
-              FUN = function(x) sum(x) * 2),  
+              FUN = function(x) sum(x) * as.numeric(input$data_recording_frequency)),  
     by = "Date")
   
   # Sort date and hour in ascending order
@@ -184,13 +184,13 @@ dead_flies <- reactive({
     dplyr::slice(11:12)
   
   
+  
   extra_day <- dates[length(dates)]
   raw <- raw %>% filter(date(Date) == extra_day)
   
   # Return which flies are dead (if any)
   dead_before <- apply(last_day[4:35], 2, find.death.before)
   dead_after <- apply(raw[3:34], 2, find.death.after)
-  
   dead_idx <- dead_before & dead_after 
   
   if (any(dead_idx)) {
