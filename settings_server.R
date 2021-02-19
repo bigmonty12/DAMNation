@@ -56,18 +56,18 @@ output$conditions <- renderUI({
   lapply(1:numConditions, function(i) {
     dropdown(
       inputId = paste0("dropdownCondition", i),
-      label = paste0("Condition #", i),
+      label = paste0("Condition/Genotype #", i),
       icon = icon("sliders"),
       status = "primary",
       circle = FALSE,
       textInput(
         inputId = paste0("nameCondition", i),
-        label = "Condition Name"
+        label = "Condition/Genotype Name"
       ),
       lapply(1:numRanges, function(j){
         numericRangeInput(
           inputId = paste0("wellsCondition", i, "range", j),
-          label = paste0("Wells with Condition #", i),
+          label = paste0("Channels with Condition/Genotype #", i),
           value = c(1, numFlies)
         )
       })
