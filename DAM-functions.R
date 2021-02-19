@@ -1,3 +1,30 @@
+#====Functions====
+# Function used to separate the combined date & time column into two separate columns
+datetime_separate <- function(df){
+  df <- tidyr::separate(df, DateTime, c("Date", "Time"), sep = " ")
+}
+
+plot_sleep_gram <- function(df){
+  ggplot(df, aes(x=Date, y=Mean, colour=Period)) +
+    geom_errorbar(aes(ymin=Mean-se, ymax=Mean+se), width=0.1) +
+    geom_point(aes(group=1)) + 
+    geom_line(aes(group=1)) +
+    theme_bw() +
+    scale_color_manual(values = c("#CC9933", "#000066")) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(x = "Hour (ZT)", y = "Mean Sleep (minutes) [w/SE]")
+}
+
+plot_act_gram <- function(df){
+  ggplot(df, aes(x=Date, y=Mean, colour=Period)) +
+    geom_errorbar(aes(ymin=Mean-se, ymax=Mean+se), width=0.1) +
+    geom_point(aes(group=1)) + 
+    geom_line(aes(group=1)) +
+    theme_bw() +
+    scale_color_manual(values = c("#CC9933", "#000066")) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    labs(x = "Hour (ZT)", y = "Mean Beam Breaks [w/SE]")
+}
 
 # Convert raw data to binary sleep data
 find.sleep <- function(df) {
@@ -102,6 +129,7 @@ find.arousal <- function(df, deadf, dates, days, num_shakes) {
 
 # Find bouts: when and how long
 find.bouts <- function(df) {
+  colNames <- colnames(df)
   bouts_list <- list()
   index = 1
   for (i in seq(3, length(df))) {
@@ -119,23 +147,25 @@ find.bouts <- function(df) {
     period <- ifelse(hour(start_time) < 12, "Light", "Dark") 
     bouts <- data.frame(idx = seq_along(start_time), start = start_time, end = end_time, length = width, period = period)
     bouts_list[[index]] <- bouts
-    colnames(bouts_list[[index]]) <- c("idx", paste0("start_", index), paste0("end_", index), paste0("length_", index),
-                                       paste0("period_", index))
+    colnames(bouts_list[[index]]) <- c("idx", paste0("start_", colNames[index+2]), paste0("end_", colNames[index+2]), 
+                                       paste0("length_", colNames[index+2]), paste0("period_", colNames[index+2]))
     index <- index + 1
   }
   return(bouts_list)
 }
 
 find.boutAverages <- function(bouts, deadf) {
-  
+  flyNames <- colnames(bouts[, seq_len(ncol(bouts)) %% 4 == 0])
+  flyNames <- gsub("period_", "", flyNames)
+  numFlies <- ncol(bouts)/4
   bouts <- bouts[c(F,F,T,T)]
-  
+
   splitdf <- function(df, n) {
     indx <- matrix(seq_len(ncol(df)), ncol = n)
     lapply(seq_len(n), function(x) df[, indx[, x]])
   }
   
-  dfs <- splitdf(bouts, 32)
+  dfs <- splitdf(bouts, numFlies)
   colnames <- c("Length", "Period")
   dfs <- lapply(dfs, setNames, colnames)
   
@@ -164,15 +194,15 @@ find.boutAverages <- function(bouts, deadf) {
     mean_dark <- mean(dark[[1]])
     sd_light <- sd(light[[1]])
     sd_dark <- sd(dark[[1]])
-    idx <- as.character(i)
+    idx <- flyNames[[i]]
     
     x <- data.frame("Fly" = idx,
-                    "Mean Bout Number (Light)" = num_light,
-                    "Mean Bout Length (Light)" = mean_light,
-                    "SD Bout Length (Light)" = sd_light,
-                    "Mean Bout Number (Dark)" = num_dark,
-                    "Mean Bout Length (Dark)" = mean_dark,
-                    "SD Bout Length (Dark)" = sd_dark)
+                    "Bout.Number.Light" = num_light,
+                    "Mean.Bout.Length.Light" = mean_light,
+                    "SD.Bout.Length.Light" = sd_light,
+                    "Bout.Number.Dark" = num_dark,
+                    "Mean.Bout.Length.Dark" = mean_dark,
+                    "SD.Bout.Length.Dark" = sd_dark)
     
     assign(nam, x)
   }
