@@ -268,7 +268,8 @@ formatActivity <- reactive({
   rawList <- filterLightOnset()
   deadFlies <- deadFlies()
   dates <- dateRange()
-  hours <- (length(dates) - 1) * 24 - 1
+  dates <- dates[-length(dates)]
+  hours <- length(dates) * 24 - 1
   
   activityList <- list()
   activityList <- lapply(1:findNumConditions(), function(i){
@@ -348,6 +349,7 @@ totalActivity <- reactive({
     
     # Find average beam breaks for day, night, and total
     raw["Averages"] = rowMeans(raw[2:(numCol-1)], na.rm = TRUE)
+    raw[2:numCol] <- raw[2:numCol] / (length(dateRange()) - 1)
     
     activityList[[i]] <- raw
     activityList[[i]]
@@ -359,10 +361,14 @@ totalActivity <- reactive({
 activityRate <- reactive({
   totalActivity <- totalActivity()
   wakingTime <- wakingTime()
+  numDays <- length(dateRange()) - 1
   
   activityRateList <- list()
   activityRateList <- lapply(1:findNumConditions(), function(i){
-    activityRateList[[i]] <- cbind(totalActivity[[i]][1], round(totalActivity[[i]][-1] / wakingTime[[i]][-1], 1))
+    raw <- totalActivity[[i]]
+    numCol <- ncol(raw)
+    raw[2:numCol] <- raw[2:numCol] * numDays
+    activityRateList[[i]] <- cbind(raw[1], round(raw[-1] / wakingTime[[i]][-1], 1))
     activityRateList[[i]]
   })
   activityRateList

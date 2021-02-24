@@ -207,7 +207,7 @@ checkStatus <- reactive({
   daysBad <- unique(bad$Date)
   monBad <- unique(bad$variable)
   monBad <- gsub("*_Status", "", monBad)
-  isComplete <- as.numeric(dataFreq()) * length(dateRange()) == nrow(filterDates())
+  isComplete <- as.numeric(dataFreq()) * (length(dateRange())-1) <= nrow(filterDates())
   
   if (!isComplete){
     print("WARNING! The full selected dates are not available in the data.")
@@ -249,16 +249,16 @@ formatTimes <- reactive({
   zt <- as.numeric(gsub(":00", "", input$light_onset_time))
 
   raw <- raw %>%
-    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dhours(zt)))
+    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dhours(zt)- dminutes(as.numeric(input$data_recording_frequency))))
   
   # Create night and day category, convert to ZT time
   time <- (hour(raw$DateTime) + minute(raw$DateTime)/60)
   
   raw <- raw %>%
-    mutate(Period = ifelse(time > 0 & time <= 12,
+    mutate(Period = ifelse(time >= 0 & time < 12,
                            "Day",
                            "Night")) %>%
-    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dminutes(as.numeric(input$data_recording_frequency))))
+    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S"))))# - dminutes(as.numeric(input$data_recording_frequency))))
   raw <- raw[-c(1,2)] %>% select(DateTime, Period, everything())
   raw
 })
