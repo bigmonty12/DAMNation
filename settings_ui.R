@@ -34,7 +34,7 @@ tabItem(tabName = "preprocessing",
           box(
             airDatepickerInput(
               inputId = "range",
-              label = "Dates of experiment:",
+              label = "Dates of experiment (last day should be last desired full day of data)",
               range = TRUE, value = c(Sys.Date()-3, Sys.Date()-1)
             ),
             width = 5
