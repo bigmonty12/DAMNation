@@ -22,7 +22,7 @@ tabItem(tabName = "preprocessing",
             numericInput("numConditions", "Number of Conditions/Genotypes", value = 1, min = 1, step = 1),
             numericInput(
               inputId = "numberRangesCondition",
-              label = "Channel Ranges Needed to Assign Flies",
+              label = "Number of Channel Ranges Needed to Assign Flies",
               value = 1,
               min = 1
             ),
