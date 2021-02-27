@@ -21,7 +21,6 @@ dataFreq <- reactive(1440 / as.numeric(input$data_recording_frequency))
 shinyjs::hide("go")
 statusButton <- eventReactive(input$status, {
   inFile()
-  shinyjs::show("go")
 })
 
 # Press go to start analysis after data check
@@ -228,6 +227,51 @@ checkStatus <- reactive({
       } else {
         print(bad[c(1:5, (numBad-5):numBad), 1:2])
       }
+    }
+  }
+})
+
+observeEvent(input$status, {
+  meltedStatus <- checkStatusTable()
+  bad <- filter(meltedStatus, value != 1)
+  numBad <- nrow(bad)
+  daysBad <- unique(bad$Date)
+  monBad <- unique(bad$variable)
+  monBad <- gsub("*_Status", "", monBad)
+  isComplete <- as.numeric(dataFreq()) * (length(dateRange())-1) <= nrow(filterDates())
+  
+  if (!isComplete){
+    show_alert(
+      title = "WARNING! The full selected dates are not available in the data.",
+      text = tags$div(
+        print("Check that there is data for the entirety of each selected date.")
+      ),
+      type = "error",
+      html = TRUE,
+      width = "80%"
+    )
+  } else {
+    shinyjs::show("go")
+    if (all(meltedStatus$value == 1)){
+      show_alert(
+        title = "Success!",
+        text = tags$div(
+          print("Good to go! Looks like the DAM system recorded the whole time for each monitor")
+        ),
+        type = "success",
+        html = TRUE,
+        width = "80%"
+      )
+    } else {
+      show_alert(
+        title = "WARNING! DAM system may have stopped working during experiment.",
+        text = tags$div(
+          print("DAM system may have stopped working during experiment."),
+        ),
+        type = "warning",
+        html = TRUE,
+        width = "80%"
+      )
     }
   }
 })
