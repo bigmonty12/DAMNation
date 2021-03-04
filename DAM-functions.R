@@ -27,13 +27,15 @@ plot_act_gram <- function(df){
 }
 
 # Convert raw data to binary sleep data
-find.sleep <- function(df) {
+find.sleep <- function(df, freq) {
   new <- rep(NA, length(df))
-  for (i in seq(from = 3, to = length(df) - 2)) {
-    if (sum(df[i:(i+2)]) == 3) {
-      new[c(i:(i+2))] = 1
-    } else if (sum(df[i:(i-2)]) == 3) {
-      new[c(i:(i-2))] = 1
+  f <- 6 / freq
+  t <- f - 1
+  for (i in seq(from = f, to = length(df) - t)) {
+    if (sum(df[i:(i+t)]) == f) {
+      new[c(i:(i+t))] = 1
+    } else if (sum(df[i:(i-t)]) == f) {
+      new[c(i:(i-t))] = 1
     } else{
       new[[i]] = 0
     }

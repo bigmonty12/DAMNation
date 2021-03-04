@@ -25,14 +25,14 @@ tabItem(tabName = "preprocessing",
           box(
             airDatepickerInput(
               inputId = "range",
-              label = "Dates of experiment:",
+              label = "Dates of experiment (last day should be last desired full day of data)",
               range = TRUE, value = c(Sys.Date()-3, Sys.Date()-1)
             ),
             width = 5
           ),
           box(
             numericInput('data_recording_frequency', 'DAM data bins [min]', value = 2, min = 1,
-                         max = NA, step = 1, width = NULL),
+                         max = 3, step = 1, width = NULL),
             width = 3
           ),
           box(
@@ -59,40 +59,3 @@ tabItem(tabName = "preprocessing",
           )
         )
       )
-
-#     wellPanel(
-#       fluidRow(
-#         column(7,
-#                tags$h3("Sleep-o-gram"))
-#       ),
-#       fluidRow(
-#         column(12,
-#                plotOutput('ave_agg_sleep'))
-#       ),
-#       fluidRow(
-#         column(3,
-#                downloadButton("downloadSleepGram", "Download Sleep-o-gram")),
-#         column(3,
-#                downloadButton("downloadSleepGramData", "Download Sleep-o-gram Data"))
-#       )
-#     ),
-#     wellPanel(
-#       fluidRow(
-#         column(7,
-#                tags$h3("Act-o-gram"))
-#       ),
-#       fluidRow(
-#         column(12,
-#                plotOutput('activity_graph'))
-#       ),
-#       fluidRow(
-#         column(3,
-#                downloadButton("downloadActGram", "Download Act-o-gram")),
-#         column(3,
-#                downloadButton("downloadActGramData", "Download Act-o-gram Data"))
-#       )
-#     )
-#     )
-# )
-
-  

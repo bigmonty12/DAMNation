@@ -26,7 +26,7 @@ createOutputFiles <- reactive({
   selectedIdx <- match(selectedFiles, possibleFiles)
   fileList <- list()
   fileList <- lapply(1:length(selectedIdx), function(i){
-    name <- (selectedIdx[i] %/% 6) + 1
+    name <- ((selectedIdx[i] - 1) %/% 5) + 1
     df <- selectedIdx[i] %% 5
     if(df == 0){df <- 5}
     fileList[[i]] <- dfList[[ df ]][[ name ]]

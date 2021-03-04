@@ -11,7 +11,7 @@ formatSleep <- reactive({
     numCols <- ncol(rawConditions[[i]]) 
     sleep[[i]] <- rawConditions[[i]] %>%
       mutate_at(vars(3:all_of(numCols)), list(~ ifelse( . == 0, 1, 0)))
-    sleep[[i]][3:numCols] <- apply(sleep[[i]][3:numCols], 2, find.sleep)
+    sleep[[i]][3:numCols] <- apply(sleep[[i]][3:numCols], 2, find.sleep, freq = as.numeric(input$data_recording_frequency))
     sleep[[i]]
   })
   sleep
@@ -200,6 +200,7 @@ aveSleep <- reactive({
 
 aveSleepTransposed <- reactive({
   sleepList <- aveSleep()
+  conditionNames <- getConditionNames()
   
   transposedList <- list()
   transposedList <- lapply(1:findNumConditions(), function(i){
@@ -208,8 +209,9 @@ aveSleepTransposed <- reactive({
     aveSleep <- aveSleep %>% tidyr::unite(Hour, Period, DateTime, remove = TRUE, sep=" ")
     rownames(aveSleep) <- aveSleep$Hour
     aveSleep$Hour <- NULL
-    transposedList[[i]] <- as.data.frame(t(as.matrix(aveSleep)))
-    transposedList[[i]]
+    aveSleepT <- as.data.frame(t(as.matrix(aveSleep)))
+    aveSleepT$Condition.Genotype <- conditionNames[[i]]
+    transposedList[[i]] <- aveSleepT %>% select(Condition.Genotype, everything())
   })
   transposedList
 })
@@ -266,7 +268,8 @@ formatActivity <- reactive({
   rawList <- filterLightOnset()
   deadFlies <- deadFlies()
   dates <- dateRange()
-  hours <- (length(dates) - 1) * 24 - 1
+  dates <- dates[-length(dates)]
+  hours <- length(dates) * 24 - 1
   
   activityList <- list()
   activityList <- lapply(1:findNumConditions(), function(i){
@@ -346,6 +349,7 @@ totalActivity <- reactive({
     
     # Find average beam breaks for day, night, and total
     raw["Averages"] = rowMeans(raw[2:(numCol-1)], na.rm = TRUE)
+    raw[2:numCol] <- raw[2:numCol] / (length(dateRange()) - 1)
     
     activityList[[i]] <- raw
     activityList[[i]]
@@ -357,10 +361,14 @@ totalActivity <- reactive({
 activityRate <- reactive({
   totalActivity <- totalActivity()
   wakingTime <- wakingTime()
+  numDays <- length(dateRange()) - 1
   
   activityRateList <- list()
   activityRateList <- lapply(1:findNumConditions(), function(i){
-    activityRateList[[i]] <- cbind(totalActivity[[i]][1], round(totalActivity[[i]][-1] / wakingTime[[i]][-1], 1))
+    raw <- totalActivity[[i]]
+    numCol <- ncol(raw)
+    raw[2:numCol] <- raw[2:numCol] * numDays
+    activityRateList[[i]] <- cbind(raw[1], round(raw[-1] / wakingTime[[i]][-1], 1))
     activityRateList[[i]]
   })
   activityRateList
@@ -471,6 +479,8 @@ averagesSummarizer <- reactive({
   totalAggSleep <- totalAggSleep()
   totalAveSleep <- totalAveSleep()
   totalActivity <- totalActivity()
+  
+  conditionNames <- getConditionNames()
 
   averageSumList <- list()
   averageSumList <- lapply(1:findNumConditions(), function(i){
@@ -487,7 +497,9 @@ averagesSummarizer <- reactive({
     averageSummarized <- averageSummarized %>% tidyr::unite(Value, Period, Type, remove = TRUE, sep=" ")
     rownames(averageSummarized) <- averageSummarized$Value
     averageSummarized$Value <- NULL
-    averageSumList[[i]] <- as.data.frame(t(as.matrix(averageSummarized)))
+    averageSummarizedT <- as.data.frame(t(as.matrix(averageSummarized)))
+    averageSummarizedT$Condition.Genotype <- conditionNames[[i]]
+    averageSumList[[i]] <- averageSummarizedT %>% select(Condition.Genotype, everything())
   })
   averageSumList
 })
@@ -500,6 +512,8 @@ dailySummarizer <- reactive({
   if (!is.null(shakeTime)) {
     arousalResults <- findArousal()
   }
+  
+  conditionNames <- getConditionNames()
   
   dailySumList <- list()
   dailySumList <- lapply(1:findNumConditions(), function(i){
@@ -519,7 +533,9 @@ dailySummarizer <- reactive({
     dailySummarized <- dailySummarized %>% tidyr::unite(Value, Period, Type, remove = TRUE, sep=" ")
     rownames(dailySummarized) <- dailySummarized$Value
     dailySummarized$Value <- NULL
-    dailySumList[[i]] <- as.data.frame(t(as.matrix(dailySummarized)))
+    dailySummarizedT <- as.data.frame(t(as.matrix(dailySummarized)))
+    dailySummarizedT$Condition.Genotype <- conditionNames[[i]]
+    dailySumList[[i]] <- dailySummarizedT %>% select(Condition.Genotype, everything())
   })
   dailySumList
 })

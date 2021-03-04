@@ -21,7 +21,6 @@ dataFreq <- reactive(1440 / as.numeric(input$data_recording_frequency))
 shinyjs::hide("go")
 statusButton <- eventReactive(input$status, {
   inFile()
-  shinyjs::show("go")
 })
 
 # Press go to start analysis after data check
@@ -51,13 +50,13 @@ output$conditions <- renderUI({
   lapply(1:numConditions, function(i) {
     dropdown(
       inputId = paste0("dropdownCondition", i),
-      label = paste0("Condition #", i),
+      label = paste0("Condition/Genotype #", i),
       icon = icon("sliders"),
       status = "primary",
       circle = FALSE,
       textInput(
         inputId = paste0("nameCondition", i),
-        label = "Condition Name"
+        label = "Condition/Genotype Name"
       ),
       h4("Assign Channels"),
       lapply(1:length(monitors), function(j) {
@@ -229,7 +228,7 @@ checkStatus <- reactive({
   daysBad <- unique(bad$Date)
   monBad <- unique(bad$variable)
   monBad <- gsub("*_Status", "", monBad)
-  isComplete <- as.numeric(dataFreq()) * length(dateRange()) == nrow(filterDates())
+  isComplete <- as.numeric(dataFreq()) * (length(dateRange())-1) <= nrow(filterDates())
   
   if (!isComplete){
     print("WARNING! The full selected dates are not available in the data.")
@@ -254,6 +253,51 @@ checkStatus <- reactive({
   }
 })
 
+observeEvent(input$status, {
+  meltedStatus <- checkStatusTable()
+  bad <- filter(meltedStatus, value != 1)
+  numBad <- nrow(bad)
+  daysBad <- unique(bad$Date)
+  monBad <- unique(bad$variable)
+  monBad <- gsub("*_Status", "", monBad)
+  isComplete <- as.numeric(dataFreq()) * (length(dateRange())-1) <= nrow(filterDates())
+  
+  if (!isComplete){
+    show_alert(
+      title = "WARNING! The full selected dates are not available in the data.",
+      text = tags$div(
+        print("Check that there is data for the entirety of each selected date.")
+      ),
+      type = "error",
+      html = TRUE,
+      width = "80%"
+    )
+  } else {
+    shinyjs::show("go")
+    if (all(meltedStatus$value == 1)){
+      show_alert(
+        title = "Success!",
+        text = tags$div(
+          print("Good to go! Looks like the DAM system recorded the whole time for each monitor")
+        ),
+        type = "success",
+        html = TRUE,
+        width = "80%"
+      )
+    } else {
+      show_alert(
+        title = "WARNING! DAM system may have stopped working during experiment.",
+        text = tags$div(
+          print("DAM system may have stopped working during experiment."),
+        ),
+        type = "warning",
+        html = TRUE,
+        width = "80%"
+      )
+    }
+  }
+})
+
 output$statusText <- renderPrint({
   statusButton()
   if (is.null(inFile()))
@@ -271,16 +315,16 @@ formatTimes <- reactive({
   zt <- as.numeric(gsub(":00", "", input$light_onset_time))
 
   raw <- raw %>%
-    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dhours(zt)))
+    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dhours(zt)- dminutes(as.numeric(input$data_recording_frequency))))
   
   # Create night and day category, convert to ZT time
   time <- (hour(raw$DateTime) + minute(raw$DateTime)/60)
   
   raw <- raw %>%
-    mutate(Period = ifelse(time > 0 & time <= 12,
+    mutate(Period = ifelse(time >= 0 & time < 12,
                            "Day",
                            "Night")) %>%
-    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S")) - dminutes(as.numeric(input$data_recording_frequency))))
+    mutate(DateTime = as.character(as.POSIXct(strptime(DateTime, "%Y-%m-%d %H:%M:%S"))))# - dminutes(as.numeric(input$data_recording_frequency))))
   raw <- raw[-c(1,2)] %>% select(DateTime, Period, everything())
   raw
 })
