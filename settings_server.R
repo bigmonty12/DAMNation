@@ -45,14 +45,9 @@ findNumConditions <- reactive({
   numConditions <- as.integer(input$numConditions)
 })
 
-findNumRanges <- reactive({
-  numRanges <- as.integer(input$numberRangesCondition)
-})
-
 output$conditions <- renderUI({
   numConditions <- findNumConditions()
-  numRanges <- findNumRanges()
-  numFlies <- findFlyNumber()
+  monitors <- monitorFilenameShort()
   lapply(1:numConditions, function(i) {
     dropdown(
       inputId = paste0("dropdownCondition", i),
@@ -64,14 +59,52 @@ output$conditions <- renderUI({
         inputId = paste0("nameCondition", i),
         label = "Condition Name"
       ),
-      lapply(1:numRanges, function(j){
-        numericRangeInput(
-          inputId = paste0("wellsCondition", i, "range", j),
-          label = paste0("Wells with Condition #", i),
-          value = c(1, numFlies)
+      h4("Assign Channels"),
+      lapply(1:length(monitors), function(j) {
+        list(
+          h5(monitors[j]),
+          selectInput(
+            inputId = paste0(monitors[j], i),
+            label = "Select Grouping",
+            choices = c("1-32", "1-16", "17-32", "Other")
+          ), 
+          selectInput(
+            inputId = paste0(monitors[j], "choices", i),
+            label = "Channels",
+            choices = c(1:32),
+            multiple = TRUE,
+            selected = 1:32
+          )
         )
       })
     )
+  })
+})
+
+observe({
+  lapply(1:findNumConditions(), function(i) {
+    lapply(1:length(monitorFilenameShort()), function(j) {
+      x <- input[[paste0(monitorFilenameShort()[j], i)]]
+      y <- NULL
+      
+      if (is.null(x)){
+        x <- '1-32'
+      } else if (x == '1-16'){
+        y <- c(1:16)
+      } else if (x == '17-32'){
+        y <- c(17:32)
+      } else if (x == '1-32'){
+        y <- c(1:32)
+      } else {
+        y <- character(0)
+      }
+      
+      if (!is.null(y)) {
+        updateSelectInput(session, paste0(monitorFilenameShort()[j], "choices", i),
+                          label = NULL,
+                          selected = y)
+      }
+    })
   })
 })
 
@@ -87,14 +120,15 @@ getConditionNames <- reactive({
 
 wellConditions <- reactive({
   numConditions <- findNumConditions()
-  numRanges <- findNumRanges()
+  monitors <- monitorFilenameShort()
   conditions <- list()
   names <- list()
   conditions <- lapply(1:numConditions, function(i) {
     ranges <- list()
-    ranges <- lapply(1:numRanges, function(j){
-      range <- input[[ paste0('wellsCondition', i, 'range', j)]]
-      ranges[[ j ]] <- range[[1]]:range[[2]]
+    ranges <- lapply(1:length(monitors), function(j){
+      range <- as.integer(input[[ paste0(monitors[j], "choices", i) ]])
+      range <- ((j - 1) * 32) + range
+      ranges[[ j ]] <- range
     })
     conditions[[ i ]] <- unique(unlist(ranges))
   })
@@ -103,29 +137,17 @@ wellConditions <- reactive({
 })
 
 #====Set Monitor Order====
-# Interactive way to create UI for selection of monitor order
-output$monitorOrder <- renderUI({
-  monitorFiles <- inFile()
-  lapply(setdiff(1:length(monitorFiles$name), 0), function(i){
-    selectInput(paste0('Monitor_order', i), paste('Monitor file order:', i), monitorFiles$name, selected = monitorFiles$name[i])
-  })
-})
-
 
 # A vector of desired monitor order
 desiredMonitorOrder <- reactive({
   monitors <- inFile()
-  desiredMonitorOrder <- unlist(lapply(1:length(monitors$name), function(i){
-    input[[paste0("Monitor_order", i)]]
-  }))
-  desiredMonitorOrder
+  monitors$name
 })
 
 # List of monitor files in user specified order
 monitor.list <- reactive({
-  fin <- input$fin
-  finOrdered <- fin[match(desiredMonitorOrder(), fin$name),]
-  monitor.list <- lapply(finOrdered$datapath, read.table, fill=TRUE)
+  monitors <- inFile()
+  monitor.list <- lapply(monitors$datapath, read.table, fill=TRUE)
   monitor.list
 })
 
