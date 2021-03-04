@@ -58,10 +58,9 @@ output$conditions <- renderUI({
         inputId = paste0("nameCondition", i),
         label = "Condition/Genotype Name"
       ),
-      h4("Assign Channels"),
       lapply(1:length(monitors), function(j) {
         list(
-          h5(monitors[j]),
+          h4(monitors[j]),
           selectInput(
             inputId = paste0(monitors[j], i),
             label = "Select Grouping",
@@ -70,7 +69,7 @@ output$conditions <- renderUI({
           selectInput(
             inputId = paste0(monitors[j], "choices", i),
             label = "Channels",
-            choices = c(1:32),
+            choices = c(Choose = '', 1:32),
             multiple = TRUE,
             selected = 1:32
           )
