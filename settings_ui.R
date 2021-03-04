@@ -13,22 +13,13 @@ tabItem(tabName = "preprocessing",
             width = 5
           ),
           box(
-            uiOutput("monitorOrder"),
+            numericInput("numConditions", "Number of Conditions", value = 1, min = 1, step = 1),
+            uiOutput("conditions", inline = TRUE),
             width = 5
           )
         ),
         fluidRow(
-          box(
-            numericInput("numConditions", "Number of Conditions/Genotypes", value = 1, min = 1, step = 1),
-            numericInput(
-              inputId = "numberRangesCondition",
-              label = "Number of Channel Ranges Needed to Assign Flies",
-              value = 1,
-              min = 1
-            ),
-            uiOutput("conditions", inline = TRUE),
-            width = 5
-          )
+          
         ),
         fluidRow(
           box(
