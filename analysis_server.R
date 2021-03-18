@@ -4,6 +4,16 @@
 source("DAM-functions.R")
 #====Sleep Data====
 
+observeEvent(input$go, {
+  waiter::waiter_show(html = waiter::spin_wave())
+  updateTabItems(session, "tabs", "analysis")
+  averagesSummarizer()
+  dailySummarizer()
+  aveSleepDT()
+  formatActivity()
+  waiter::waiter_hide()
+})
+
 formatSleep <- reactive({
   rawConditions <- filterLightOnset()
   sleep <- list()
@@ -165,7 +175,7 @@ aveSleep <- reactive({
   numDays <- length(dateRange()) - 1
   
   # Merge sleep by each hour of the day and divide by numDays to find average
-  averageHour <- function(x) sum(x) * 2 / numDays
+  averageHour <- function(x) sum(x) * as.numeric(input$data_recording_frequency) / numDays
   
   aveSleepList <- list()
   aveSleepList <- lapply(1:findNumConditions(), function(i){
@@ -177,13 +187,13 @@ aveSleep <- reactive({
     aveSleep <- sleep %>%
       mutate(DateTime = paste0(hour(sleep$DateTime)))
     
-    aveSleep = merge(
+    aveSleep <- merge(
       unique(aveSleep[1:2]), 
       aggregate(aveSleep[3:numCol], by = aveSleep[1], FUN = averageHour),  
       by = "DateTime")
     
     # Sort hour in ascending order
-    aveSleep = aveSleep[order(as.integer(aveSleep$DateTime)), ]
+    aveSleep <- aveSleep[order(as.integer(aveSleep$DateTime)), ]
     
     # Convert dead fly values to NA
     if (dead > 0) {
@@ -191,17 +201,33 @@ aveSleep <- reactive({
     }
     
     # Find average time slept for each hour of the day
-    aveSleep["Averages"] = rowMeans(aveSleep[3:numCol], na.rm = TRUE)
+    aveSleep["Averages"] <- rowMeans(aveSleep[3:numCol], na.rm = TRUE)
     aveSleepList[[i]] <- aveSleep
     aveSleepList[[i]]
   })
   aveSleepList
 })
 
-aveSleepTransposed <- reactive({
+aveSleepDT <- reactive({
   sleepList <- aveSleep()
   conditionNames <- getConditionNames()
   
+  DTList <- list()
+  DTList <- lapply(1:findNumConditions(), function(i){
+    df <- sleepList[[i]]
+    colnames(df)[colnames(df) == 'DateTime'] <- 'Hour'
+    df$Condition.Genotype <- conditionNames[[i]]
+    df$Period <- NULL
+    df$Averages <- NULL
+    DTList[[i]] <- df %>% select(Hour, Condition.Genotype, everything())
+  })
+  DTList
+})
+
+aveSleepTransposed <- reactive({
+  sleepList <- aveSleep()
+  conditionNames <- getConditionNames()
+
   transposedList <- list()
   transposedList <- lapply(1:findNumConditions(), function(i){
     aveSleep <- sleepList[[i]]
@@ -266,44 +292,45 @@ latency <- reactive({
 #====Get specific activity for each fly====
 formatActivity <- reactive({
   rawList <- filterLightOnset()
-  deadFlies <- deadFlies()
-  dates <- dateRange()
-  dates <- dates[-length(dates)]
-  hours <- length(dates) * 24 - 1
+  deadList <- deadFlies()
+  numDays <- length(dateRange()) - 1
+  conditionNames <- getConditionNames()
   
-  activityList <- list()
-  activityList <- lapply(1:findNumConditions(), function(i){
-    raw <- rawList[[i]]
-    dead <- deadFlies[[i]]
+  # Merge sleep by each hour of the day and divide by numDays to find average
+  averageHour <- function(x) sum(x) / numDays
 
-    # Change date column to string with only date and hour
-    agg <- raw %>%
-      mutate(DateTime = paste0(date(raw$DateTime), " ", hour(raw$DateTime)))
+  aveActivityList <- list()
+  aveActivityList <- lapply(1:findNumConditions(), function(i){
+    raw <- rawList[[i]]
+    numCol <- ncol(raw)
+    dead <- deadList[[i]]
+
+    # Change Date column to hour string
+    aveActivity <- raw %>%
+      mutate(DateTime = paste0(hour(raw$DateTime)))
     
-    numCols <- ncol(agg)
+    aveActivity <- merge(
+      unique(aveActivity[1:2]), 
+      aggregate(aveActivity[3:numCol], by = aveActivity[1], FUN = averageHour),  
+      by = "DateTime")
     
-    # Merge sleep by each hour of each day
-    agg <- merge(unique(agg[1:2]), aggregate(agg[3:numCols], by = agg[1], FUN = function(x) sum(x)), by = "DateTime")
+    # Sort hour in ascending order
+    aveActivity <- aveActivity[order(as.integer(aveActivity$DateTime)), ]
     
-    # Sort date and hour in ascending order
-    agg = agg[mixedorder(gsub('-', '', agg$DateTime)), ]
-    
+    # Convert dead fly values to NA
     if (dead > 0) {
-      agg[c(dead) + 2] <- NA
+      aveActivity[c(dead) + 2] <- NA
     }
     
-    names <- colnames(agg)
-    cols <- seq(3, numCols)
-    agg[, names[cols]] <- sapply(agg[, names[cols]], as.numeric)
-    agg <- agg %>%
-      mutate(Mean = rowMeans(.[cols], na.rm = TRUE),
-             std = rowSds(as.matrix(.[cols]), na.rm = TRUE),
-             se = std / sqrt((numCols-2) - length(dead)))
-    agg$DateTime <- factor(agg$DateTime, levels = agg$DateTime, ordered = TRUE)
-    agg$hours <- seq(from = 0, to = hours, by = 1)
-    activityList[[i]] <- agg
+    colnames(aveActivity)[colnames(aveActivity) == 'DateTime'] <- 'Hour'
+    aveActivity$Condition.Genotype <- conditionNames[[i]]
+    aveActivity$Period <- NULL
+    
+    # Find average time slept for each hour of the day
+    aveActivityList[[i]] <- aveActivity %>% select(Hour, Condition.Genotype, everything())
+    aveActivityList[[i]]
   })
-  activityList
+  aveActivityList
 })
 
 wakingTime <- reactive({
@@ -398,7 +425,7 @@ findBoutAverages <- reactive({
   boutAveragesList <- list()
   boutAveragesList <- lapply(1:findNumConditions(), function(i){
     aveSums <- aveSumsList[[i]]
-    deathTimes <- aveSums[1:(nrow(aveSums) - 1), 1]
+    deathTimes <- aveSums[1:nrow(aveSums), 1]
     bouts <- boutsList[[i]]
     dead <- deadFlies[[i]]
     foundBoutsAves <- find.boutAverages(bouts, dead)
@@ -491,7 +518,7 @@ averagesSummarizer <- reactive({
     deathTimes[[i]]$Averages <- NA
     totalAggSleep[[i]]$Type <- "Total sleep (min)"
     totalAveSleep[[i]]$Type <- "Mean sleep (min/period)"
-    totalActivity[[i]]$Type <- "Activity (average beam breaks/period)"
+    totalActivity[[i]]$Type <- "Activity average (average beam breaks/period)"
     activityRate[[i]]$Type <- "Activity rate (beams breaks/min awake)"
     averageSummarized <- rbind(deathTimes[[i]], totalAggSleep[[i]], totalAveSleep[[i]], totalActivity[[i]], activityRate[[i]])
     averageSummarized <- averageSummarized %>% tidyr::unite(Value, Period, Type, remove = TRUE, sep=" ")
@@ -499,7 +526,7 @@ averagesSummarizer <- reactive({
     averageSummarized$Value <- NULL
     averageSummarizedT <- as.data.frame(t(as.matrix(averageSummarized)))
     averageSummarizedT$Condition.Genotype <- conditionNames[[i]]
-    averageSumList[[i]] <- averageSummarizedT %>% select(Condition.Genotype, everything())
+    averageSumList[[i]] <- averageSummarizedT %>% select(Condition.Genotype, everything()) %>% slice(1:(n()-1))
   })
   averageSumList
 })
@@ -535,72 +562,19 @@ dailySummarizer <- reactive({
     dailySummarized$Value <- NULL
     dailySummarizedT <- as.data.frame(t(as.matrix(dailySummarized)))
     dailySummarizedT$Condition.Genotype <- conditionNames[[i]]
-    dailySumList[[i]] <- dailySummarizedT %>% select(Condition.Genotype, everything())
+    dailySumList[[i]] <- dailySummarizedT %>% select(Condition.Genotype, everything()) %>% slice(1:(n()-1))
   })
   dailySumList
 })
-
-#====Leftovers====
-output$ave_agg_sleep <- renderPlot({
-  goButton()
-  ave_agg_sleep <- format_agg_ave_sleep()
-  
-  plot_sleep_gram(ave_agg_sleep)
-})
-
-output$downloadSleepGram <- downloadHandler(
-  filename = function() {
-    paste(input$dateStart, "_sleep-o-gram_", input$experimentLength, "days.", input$monitorNumber, ".png", sep = "")
-  },
-  content = function(file){
-    ave_agg_sleep <- format_agg_ave_sleep()
-    ggsave(file, plot=plot_sleep_gram(ave_agg_sleep), units = "in", height = 10, width = 20)
-  }
-)
-
-output$downloadSleepGramData <- downloadHandler(
-  filename = function() {
-    paste(input$dateStart, "_sleep-o-gram_", input$experimentLength, "days.", input$monitorNumber, ".csv", sep = "")
-  },
-  content = function(file){
-    ave_agg_sleep <- format_agg_ave_sleep()
-    write.csv(ave_agg_sleep, file)
-  }
-)
-
-output$activity_graph <- renderPlot({
-  goButton()
-  activity <- format_activity()
-  
-  plot_act_gram(activity)
-})
-
-output$downloadActGram <- downloadHandler(
-  filename = function() {
-    paste(input$dateStart, "_act-o-gram_", input$experimentLength, "days.", input$monitorNumber, ".png", sep = "")
-  },
-  content = function(file){
-    activity <- format_activity()
-    ggsave(file, plot=plot_sleep_gram(activity), units = "in", height = 10, width = 20)
-  }
-)
-
-output$downloadActGramData <- downloadHandler(
-  filename = function() {
-    paste(input$dateStart, "_act-o-gram_", input$experimentLength, "days.", input$monitorNumber, ".csv", sep = "")
-  },
-  content = function(file){
-    activity <- format_activity()
-    write.csv(activity, file)
-  }
-)
 #====Shiny Outputs====
+
 output$previews <- renderUI({
   numConditions <- findNumConditions()
   names <- getConditionNames()
   vals <- 1:5
   tabBoxList <- list()
   tabBoxList <- lapply(1:numConditions, function(i) {
+
     output[[paste0('averageSummarizer', i)]] <- DT::renderDataTable({
       goButton()
       isolate(DT::datatable(data = averagesSummarizer()[[i]], options = list(scrollX=TRUE, pageLength = 5)))
@@ -611,15 +585,21 @@ output$previews <- renderUI({
     })
     output[[paste0('averageSleep', i)]] <- DT::renderDataTable({
       goButton()
-      isolate(DT::datatable(data = aveSleepTransposed()[[i]], options = list(scrollX=TRUE, pageLength = 5)))
+      isolate(DT::datatable(data = aveSleepDT()[[i]], options = list(scrollX=TRUE, pageLength = 5)))
+    })
+    output[[paste0('averageActivity', i)]] <- DT::renderDataTable({
+      goButton()
+      isolate(DT::datatable(data = formatActivity()[[i]], options = list(scrollX=TRUE, pageLength = 5)))
     })
     
     tabBoxList[[i]] <- fluidRow(
       tabBox(
+        id = paste0("tabset", i),
         title = names[[i]],
-        tabPanel(title = "Activity and Sleep Average Values", DT::dataTableOutput(paste0("averageSummarizer",i))),
-        tabPanel(title = "Activity and Sleep Daily Values", DT::dataTableOutput(paste0("dailySummarizer",i))),
-        tabPanel(title = "Sleep Average (min) by Hour of Day", DT::dataTableOutput(paste0("averageSleep",i))),
+        tabPanel(title = paste(names[[i]], "Activity and Sleep Average Values"), DT::dataTableOutput(paste0("averageSummarizer",i))),
+        tabPanel(title = paste(names[[i]], "Activity and Sleep Daily Values"), DT::dataTableOutput(paste0("dailySummarizer",i))),
+        tabPanel(title = paste(names[[i]], "Sleep Average (min) by Hour of Day"), DT::dataTableOutput(paste0("averageSleep",i))),
+        tabPanel(title = paste(names[[i]], "Average Beam Breaks by Hour of Day"), DT::dataTableOutput(paste0("averageActivity",i))),
         width = 12
       )
     )

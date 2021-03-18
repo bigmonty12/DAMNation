@@ -2,8 +2,6 @@
 # Settings tab of Shiny app
 
 tabItem(tabName = "preprocessing",
-        waiter::use_waiter(),
-        shinyjs::useShinyjs(),
         h2("Settings"),
         fluidRow(
           box(
@@ -13,13 +11,10 @@ tabItem(tabName = "preprocessing",
             width = 5
           ),
           box(
-            numericInput("numConditions", "Number of Conditions", value = 1, min = 1, step = 1),
+            numericInput("numConditions", "Number of Conditions/Genotypes", value = 1, min = 1, step = 1),
             uiOutput("conditions", inline = TRUE),
             width = 5
           )
-        ),
-        fluidRow(
-          
         ),
         fluidRow(
           box(
@@ -46,9 +41,12 @@ tabItem(tabName = "preprocessing",
           )
         ),
         fluidRow(
-          box(
-            verbatimTextOutput("statusText"),
-            width = 12
+          conditionalPanel(
+            'input.status > 0',
+            box(
+              verbatimTextOutput("statusText"),
+              width = 12
+            )
           )
         ),
         fluidRow(

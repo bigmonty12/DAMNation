@@ -3,7 +3,5 @@
 
 tabItem(
   tabName = "analysis",
-  waiter::use_waiter(),
-  shinyjs::useShinyjs(),
   uiOutput("previews")
 )

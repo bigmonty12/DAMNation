@@ -28,10 +28,6 @@ goButton <- eventReactive(input$go, {
   inFile()
 })
 
-observeEvent(input$go, {
-  updateTabItems(session, "tabs", "analysis")
-})
-
 # Get dates of experiment
 dateRange <- reactive({
   dates <- as.character(as.Date(
@@ -64,14 +60,17 @@ output$conditions <- renderUI({
           selectInput(
             inputId = paste0(monitors[j], i),
             label = "Select Grouping",
-            choices = c("1-32", "1-16", "17-32", "Other")
+            choices = c("1-32", "1-16", "17-32", "Manually Select")
           ), 
-          selectInput(
+          pickerInput(
             inputId = paste0(monitors[j], "choices", i),
             label = "Channels",
             choices = c(Choose = '', 1:32),
             multiple = TRUE,
-            selected = 1:32
+            selected = 1:32,
+            options = list(
+              `selected-text-format` = "count > 3",
+              `actions-box` = TRUE)
           )
         )
       })
@@ -161,14 +160,8 @@ monitor.list.edited <- reactive({
 
 # Merge data frames of monitor files into one data frame
 mergeMonitors <- reactive({
-  withProgress(
-    message = 'Reading data', {
-      incProgress(1, detail = paste("In progress"))
-      
-      Reduce(function(x, y) merge(x, y, all=TRUE, by=c("V1", "V2", "V3", "V4", "V5"), sort = FALSE),
+    Reduce(function(x, y) merge(x, y, all=TRUE, by=c("V1", "V2", "V3", "V4", "V5"), sort = FALSE),
              monitor.list.edited(), accumulate=FALSE)
-    }
-  )
 })
 
 # Get error code columns
@@ -253,6 +246,7 @@ checkStatus <- reactive({
 })
 
 observeEvent(input$status, {
+  waiter::waiter_show(html = waiter::spin_wave())
   meltedStatus <- checkStatusTable()
   bad <- filter(meltedStatus, value != 1)
   numBad <- nrow(bad)
@@ -295,6 +289,7 @@ observeEvent(input$status, {
       )
     }
   }
+  waiter::waiter_hide()
 })
 
 output$statusText <- renderPrint({
