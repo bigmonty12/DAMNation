@@ -39,6 +39,7 @@ title <- tags$div(href="https://github.com/bigmonty12/DAMNation",
 # Define UI for the application
 ui <- dashboardPage(
   skin = "blue",
+  title = "DAM Nation",
   dashboardHeader(
     tags$li(class = "dropdown",
             tags$style(".main-header {max-height: 60px}"),
@@ -68,6 +69,7 @@ ui <- dashboardPage(
   dashboardBody(
     waiter::use_garcon(),
     waiter::use_waiter(),
+    waiter::use_steward(),
     waiter::waiter_show_on_load(
       tags$img(
         src="logo.png",

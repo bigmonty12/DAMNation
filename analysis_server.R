@@ -5,7 +5,7 @@ source("DAM-functions.R")
 #====Sleep Data====
 
 analysisLoadingScreen <- tagList(
-  h3("Analyzing Data...", style = "color:gray;"),
+  h3("Analyzing Data...", style = "color:white;"),
   img(src="logo.png", height = "300")
 )
 

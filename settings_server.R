@@ -254,12 +254,13 @@ checkStatus <- reactive({
 })
 
 dataLoadingScreen <- tagList(
-  h3("Checking Data Status...", style = "color:gray;"),
+  h3("Checking Data Status...", style = "color:white;"),
   img(src="logo.png", height = "300")
 )
 
 observeEvent(input$status, {
   waiter::waiter_show(html = dataLoadingScreen)
+  waiter::use_steward()
   meltedStatus <- checkStatusTable()
   bad <- filter(meltedStatus, value != 1)
   numBad <- nrow(bad)
