@@ -51,9 +51,9 @@ tabItem(tabName = "preprocessing",
         ),
         fluidRow(
           column(
-            3,
-            actionBttn('status', 'Data Check', color = "primary", style = "pill"),
-            actionBttn('go', 'Analyze Data', color = 'success', style = 'pill')
+            4,
+            actionBttn('status', 'Data Check', color = "danger", style = "material-flat", icon = icon("list")),
+            actionBttn('go', 'Analyze Data', color = 'success', style = 'material-flat', icon = icon("play"))
           )
         )
       )

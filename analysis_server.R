@@ -4,8 +4,13 @@
 source("DAM-functions.R")
 #====Sleep Data====
 
+analysisLoadingScreen <- tagList(
+  h3("Analyzing Data...", style = "color:gray;"),
+  img(src="logo.png", height = "300")
+)
+
 observeEvent(input$go, {
-  waiter::waiter_show(html = waiter::spin_wave())
+  waiter::waiter_show(html = analysisLoadingScreen)
   updateTabItems(session, "tabs", "analysis")
   averagesSummarizer()
   dailySummarizer()

@@ -44,36 +44,44 @@ output$conditions <- renderUI({
   numConditions <- findNumConditions()
   monitors <- monitorFilenameShort()
   lapply(1:numConditions, function(i) {
-    dropdown(
-      inputId = paste0("dropdownCondition", i),
-      label = paste0("Condition/Genotype #", i),
-      icon = icon("sliders"),
-      status = "primary",
-      circle = FALSE,
-      textInput(
-        inputId = paste0("nameCondition", i),
-        label = "Condition/Genotype Name"
+    dropMenu(
+      placement = "right",
+      actionBttn(
+        inputId = paste0("dropdownCondition", i),
+        label = paste0("Condition/Genotype #", i),
+        icon = icon("sliders"),
+        color = "primary",
+        style = "material-flat",
+        size = "sm"
       ),
-      lapply(1:length(monitors), function(j) {
-        list(
-          h4(monitors[j]),
-          selectInput(
-            inputId = paste0(monitors[j], i),
-            label = "Select Grouping",
-            choices = c("1-32", "1-16", "17-32", "Manually Select")
-          ), 
-          pickerInput(
-            inputId = paste0(monitors[j], "choices", i),
-            label = "Channels",
-            choices = c(Choose = '', 1:32),
-            multiple = TRUE,
-            selected = 1:32,
-            options = list(
-              `selected-text-format` = "count > 3",
-              `actions-box` = TRUE)
-          )
-        )
-      })
+      circle = FALSE,
+      div(style='max-height: 80vh; overflow-y: auto;',
+          
+          textInput(
+            inputId = paste0("nameCondition", i),
+            label = "Condition/Genotype Name"
+          ),
+          lapply(1:length(monitors), function(j) {
+            list(
+              h4(monitors[j]),
+              selectInput(
+                inputId = paste0(monitors[j], i),
+                label = "Select Grouping",
+                choices = c("1-32", "1-16", "17-32", "Manually Select")
+              ), 
+              pickerInput(
+                inputId = paste0(monitors[j], "choices", i),
+                label = "Channels",
+                choices = c(Choose = '', 1:32),
+                multiple = TRUE,
+                selected = 1:32,
+                options = list(
+                  `selected-text-format` = "count > 3",
+                  `actions-box` = TRUE)
+              )
+            )
+          })
+      )
     )
   })
 })
@@ -245,8 +253,13 @@ checkStatus <- reactive({
   }
 })
 
+dataLoadingScreen <- tagList(
+  h3("Checking Data Status...", style = "color:gray;"),
+  img(src="logo.png", height = "300")
+)
+
 observeEvent(input$status, {
-  waiter::waiter_show(html = waiter::spin_wave())
+  waiter::waiter_show(html = dataLoadingScreen)
   meltedStatus <- checkStatusTable()
   bad <- filter(meltedStatus, value != 1)
   numBad <- nrow(bad)
