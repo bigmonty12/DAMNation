@@ -55,6 +55,7 @@ ui <- dashboardPage(
       menuItem("Preprocess Data", tabName = "preprocessing", icon = icon("warehouse")),
       menuItem("Preview Results", tabName = "analysis", icon = icon("table")),
       menuItem("Plot Results", tabName = "plots", icon = icon("chart-bar")),
+      menuItem("User Guide", tabName = "guide", icon = icon("book")),
       conditionalPanel(
         'input.go > 0',
         uiOutput("selectFiles"),
@@ -81,7 +82,8 @@ ui <- dashboardPage(
     tabItems(
       source("settings_ui.R", local = TRUE)$value,
       source("analysis_ui.R", local = TRUE)$value,
-      source("plots_ui.R", local = TRUE)$value
+      source("plots_ui.R", local = TRUE)$value,
+      source("guide_ui.R", local = TRUE)$value
     )
   )
 )
@@ -98,6 +100,7 @@ server <- function(input, output, session){
   source("analysis_server.R", local = TRUE)$value
   source("plots_server.R", local = TRUE)$value
   source("download_server.R", local = TRUE)$value
+  source("guide_server.R", local = TRUE)$value
 }
     
 # Run the application 
