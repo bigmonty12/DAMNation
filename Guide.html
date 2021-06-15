@@ -277,7 +277,7 @@ div.tocify {
 <li>In this same dropdown menu, select which flies from each uploaded monitor file fits this condition/genotype.</li>
 <li>Repeat this process for each condition/genotype.</li>
 <li>Select the dates of the data you wish to analyze (NOTE: Important to adjust for ZT time. The last day selected should have an entire day’s worth of data, not only a partial day’s worth of data)</li>
-<li>Adjust the data acquisition frequency for which data was collected in the DAM file.</li>
+<li>Adjust the data bin length for which data was collected in the DAM file.</li>
 <li>Adjust the light onset time to match your experiment.</li>
 <li>Click the red Data Check button (If it is a success, continue. If there is an error, see the error guidance underneath).</li>
 <li>Click the green Analyze Data button.</li>
@@ -289,36 +289,40 @@ div.tocify {
 </div>
 <div id="preprocess-data" class="section level1" number="3">
 <h1 number="3"><span class="header-section-number">3</span> Preprocess Data</h1>
-<div id="upload-monitor-files" class="section level2" number="3.1">
-<h2 number="3.1"><span class="header-section-number">3.1</span> Upload Monitor Files</h2>
-<p>DAMNation accepts DAM system monitor files in .csv format. If uploading multiple monitor files (CTRL-Click to select multiple files), make sure the starting date and time and the end date and time are the same for all files or there will be an error. It is also necessary to make sure each experiment lasts at least two hours more after the last day of the experiment is completed. This additional time is used to decide if flies are dead or not.</p>
+<div id="download-dam-monitor-data" class="section level2" number="3.1">
+<h2 number="3.1"><span class="header-section-number">3.1</span> Download DAM Monitor Data</h2>
+<p>The first step in this analyses is to make sure the downloaded DAM experiments are in the correct format. This is is the point where one decides how often to bin the data, an important variable in analysis (as seen by <a href="#dam-data-bins">Dam Data Bins</a>). Make sure all files have the same starting point and ending point (at least if they are to be analyzed concurrently). Note that when downloading monitor data in DAMFileScan, make sure the final data bin collected is at least 2 hours past the experiment endpoint. This additional time is used to determine if flies are dead at the end of the experiment or not.</p>
 </div>
-<div id="number-of-conditionsgenotypes" class="section level2" number="3.2">
-<h2 number="3.2"><span class="header-section-number">3.2</span> Number of Conditions/Genotypes</h2>
-<p>While impractical, It is possible to have infinite conditions/genotypes. Simply type in how many you want. Click on the blue button underneath (CONDITION/GENOTYPE #X), and type the desired name into the first box. Underneath the input name, each monitor file is available to select the flies that have the input condition/genotype. The default choices for each monitor are 1-32, 1-16, 17-32, and Manually Select. Note that chossing Manually Select essentially renders your choice as “No flies in this monitor match this condition” until you clicking on the Channels dropdown box and selecting each fly.</p>
+<div id="upload-monitor-files" class="section level2" number="3.2">
+<h2 number="3.2"><span class="header-section-number">3.2</span> Upload Monitor Files</h2>
+<p>DAMNation accepts DAM system monitor files in .txt format. If uploading multiple monitor files (CTRL-Click to select multiple files), make sure the starting date and time and the end date and time are the same for all files or there will be an error.</p>
 </div>
-<div id="dates-of-experiment" class="section level2" number="3.3">
-<h2 number="3.3"><span class="header-section-number">3.3</span> Dates of Experiment</h2>
+<div id="number-of-conditionsgenotypes" class="section level2" number="3.3">
+<h2 number="3.3"><span class="header-section-number">3.3</span> Number of Conditions/Genotypes</h2>
+<p>While impractical, It is possible to have infinite conditions/genotypes. Simply type in how many you want. Click on the blue button underneath (CONDITION/GENOTYPE #X), and type the desired name into the first box. Underneath the input name, each monitor file is available to select the flies that have the input condition/genotype. The default choices for each monitor are 1-32, 1-16, 17-32, and Manually Select. Note that choosing Manually Select essentially renders your choice as “No flies in this monitor match this condition” until clicking on the Channels dropdown box and selecting each fly.</p>
+</div>
+<div id="dates-of-experiment" class="section level2" number="3.4">
+<h2 number="3.4"><span class="header-section-number">3.4</span> Dates of Experiment</h2>
 <p>Select the dates of the experiment you hope to analyze. DAMNation will remove all recorded data from before the Light Onset of the chosen first date. The first date is fairly straightforward to choose, but due to ZT time adjustments, it can be difficult to know which date to choose as the last date. I find it helpful to think of the last date as the last day where 24 hours of data were recorded.</p>
 <p>For example, take a 3 day experiment that start on Jan 1st. While technically the experiment will end at the Light Onset time on Jan 4th, the last date with 24 hours of data is Jan 3rd. Thus, Jan 1st - Jan 3rd would be the dates selected for a three day experiment.</p>
 </div>
-<div id="dam-data-bins" class="section level2" number="3.4">
-<h2 number="3.4"><span class="header-section-number">3.4</span> DAM Data Bins</h2>
+<div id="dam-data-bins" class="section level2" number="3.5">
+<h2 number="3.5"><span class="header-section-number">3.5</span> DAM Data Bins</h2>
 <p>This setting is used to describe the sampling rate for the DAM file. The options are 1 min, 2 min, and 3 min due to how sleep is calculated (6 consecutive minutes of no beam breaks).</p>
 </div>
-<div id="light-onset-time" class="section level2" number="3.5">
-<h2 number="3.5"><span class="header-section-number">3.5</span> Light Onset Time</h2>
+<div id="light-onset-time" class="section level2" number="3.6">
+<h2 number="3.6"><span class="header-section-number">3.6</span> Light Onset Time</h2>
 <p>Simply, Light Onset Time is what time the light turns on for the flies. It is used to establish ZT time.</p>
 </div>
-<div id="data-check-troubleshooting" class="section level2" number="3.6">
-<h2 number="3.6"><span class="header-section-number">3.6</span> Data Check (Troubleshooting)</h2>
+<div id="data-check-troubleshooting" class="section level2" number="3.7">
+<h2 number="3.7"><span class="header-section-number">3.7</span> Data Check (Troubleshooting)</h2>
 <p>It is important to do a data sanity check by clicking on the red Data Check button.</p>
 <p>If everything looks good, a Success! box with a check mark will appear.</p>
 <p>If the full selected dates are not available in the data, a red Warning! box with an X will appear. This is most likely due choosing dates that are not available in the uploaded monitor files. Another possibility is that the DAM Data Bins parameter is different than what occurs in the data.</p>
 <p>If there seems to have been an error during the experiment such that the monitor file says the DAM system turned off (status = 0), a Warning! box will occur. At this point, a dialogue box will say which files, dates, and (first 5 and last 5) times the DAM system was off. If it was only a small blip, then it should be okay to continue analyzing the data. More extensive issues may mean the experiment needs to be repeated or the selected dates for analysis need to be changed.</p>
 </div>
-<div id="analyze-data" class="section level2" number="3.7">
-<h2 number="3.7"><span class="header-section-number">3.7</span> Analyze Data</h2>
+<div id="analyze-data" class="section level2" number="3.8">
+<h2 number="3.8"><span class="header-section-number">3.8</span> Analyze Data</h2>
 <p>If the Data Check does not result in the Warning! screen, a green Analyze Data button will appear. Clicking on this button will start a Loading screen and end on the Preview Results tab after the analysis is completed.</p>
 </div>
 </div>

@@ -13,12 +13,13 @@ output:
       smooth_scroll: yes
 ---
 
+```{=html}
 <style type="text/css">
   body{
   font-size: 12pt;
 }
 </style>
-
+```
 # Documentation
 
 ## Description
@@ -43,7 +44,7 @@ Source code is available through the [DAMNation GitHub Repository](https://githu
 4.  In this same dropdown menu, select which flies from each uploaded monitor file fits this condition/genotype.
 5.  Repeat this process for each condition/genotype.
 6.  Select the dates of the data you wish to analyze (NOTE: Important to adjust for ZT time. The last day selected should have an entire day's worth of data, not only a partial day's worth of data)
-7.  Adjust the data acquisition frequency for which data was collected in the DAM file.
+7.  Adjust the data bin length for which data was collected in the DAM file.
 8.  Adjust the light onset time to match your experiment.
 9.  Click the red Data Check button (If it is a success, continue. If there is an error, see the error guidance underneath).
 10. Click the green Analyze Data button.
@@ -54,13 +55,18 @@ Source code is available through the [DAMNation GitHub Repository](https://githu
 
 # Preprocess Data
 
+## Download DAM Monitor Data
+
+The first step in this analyses is to make sure the downloaded DAM experiments are in the correct format. This is is the point where one decides how often to bin the data, an important variable in analysis (as seen by [Dam Data Bins]). Make sure all files have the same starting point and ending point (at least if they are to be analyzed concurrently). 
+Note that when downloading monitor data in DAMFileScan, make sure the final data bin collected is at least 2 hours past the experiment endpoint. This additional time is used to determine if flies are dead at the end of the experiment or not.
+
 ## Upload Monitor Files
 
-DAMNation accepts DAM system monitor files in .csv format. If uploading multiple monitor files (CTRL-Click to select multiple files), make sure the starting date and time and the end date and time are the same for all files or there will be an error. It is also necessary to make sure each experiment lasts at least two hours more after the last day of the experiment is completed. This additional time is used to decide if flies are dead or not.
+DAMNation accepts DAM system monitor files in .txt format. If uploading multiple monitor files (CTRL-Click to select multiple files), make sure the starting date and time and the end date and time are the same for all files or there will be an error.
 
 ## Number of Conditions/Genotypes
 
-While impractical, It is possible to have infinite conditions/genotypes. Simply type in how many you want. Click on the blue button underneath (CONDITION/GENOTYPE \#X), and type the desired name into the first box. Underneath the input name, each monitor file is available to select the flies that have the input condition/genotype. The default choices for each monitor are 1-32, 1-16, 17-32, and Manually Select. Note that chossing Manually Select essentially renders your choice as "No flies in this monitor match this condition" until you clicking on the Channels dropdown box and selecting each fly.
+While impractical, It is possible to have infinite conditions/genotypes. Simply type in how many you want. Click on the blue button underneath (CONDITION/GENOTYPE \#X), and type the desired name into the first box. Underneath the input name, each monitor file is available to select the flies that have the input condition/genotype. The default choices for each monitor are 1-32, 1-16, 17-32, and Manually Select. Note that choosing Manually Select essentially renders your choice as "No flies in this monitor match this condition" until clicking on the Channels dropdown box and selecting each fly.
 
 ## Dates of Experiment
 
@@ -68,7 +74,7 @@ Select the dates of the experiment you hope to analyze. DAMNation will remove al
 
 For example, take a 3 day experiment that start on Jan 1st. While technically the experiment will end at the Light Onset time on Jan 4th, the last date with 24 hours of data is Jan 3rd. Thus, Jan 1st - Jan 3rd would be the dates selected for a three day experiment.
 
-## DAM Data Bins
+## DAM Data Bins {#dam-data-bins}
 
 This setting is used to describe the sampling rate for the DAM file. The options are 1 min, 2 min, and 3 min due to how sleep is calculated (6 consecutive minutes of no beam breaks).
 
@@ -176,13 +182,17 @@ The SEM bars are generated with the data's mean +- the standard error. Similar t
 
 ## One file, Two Conditions/Genotypes
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/A8aGMYSVp6s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-external="1"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/A8aGMYSVp6s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-external="1">
+
+</iframe>
 
 In the example above, we want to analyze an experiment for three days. Only one monitor file is uploaded. This monitor had two different conditions, A and B. The first 16 flies were condition A, and the last 16 flies (17-32) were condition B. After clicking the Data Check button and receiving the success response, we can now click the Analyze Data button.
 
 ## Three files, Two Conditions/Genotypes
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/U6ARcATH98Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-external="1"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/U6ARcATH98Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-external="1">
+
+</iframe>
 
 In the example above, we now want to analyze three monitor files for three days of an experiment. We use the CTRL-button to select multiple files. Once again, there are only two conditions, A and B. The entire first monitor and the first half of the second monitor are condition A. The entire third monitor and the second half of the second monitor are condition B. Note that if a condition is not present in a monitor, we click 'Manually Select" to default to 0 flies selected.
 
